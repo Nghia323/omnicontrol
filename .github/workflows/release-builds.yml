@@ -75,8 +75,19 @@ jobs:
           OMNI_KEY_ALIAS: ${{ secrets.OMNI_KEY_ALIAS }}
           OMNI_KEY_PASS: ${{ secrets.OMNI_KEY_PASS }}
         run: |
-          chmod +x gradlew
-          ./gradlew assembleRelease bundleRelease
+          - name: Setup Gradle
+    uses: gradle/actions/setup-gradle@v4
+    with:
+      gradle-version: '8.9'
+
+  - name: Build Signed APK & AAB
+    working-directory: android-client
+    env:
+      OMNI_KEYSTORE_PATH: release-keystore.jks
+      OMNI_KEYSTORE_PASS: ${{ secrets.OMNI_KEYSTORE_PASS }}
+      OMNI_KEY_ALIAS: ${{ secrets.OMNI_KEY_ALIAS }}
+      OMNI_KEY_PASS: ${{ secrets.OMNI_KEY_PASS }}
+    run: gradle assembleRelease bundleRelease
       - name: Upload Android Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -85,7 +96,6 @@ jobs:
             android-client/app/build/outputs/apk/release/app-arm64-v8a-release.apk
             android-client/app/build/outputs/apk/release/app-universal-release.apk
             android-client/app/build/outputs/bundle/release/app-release.aab
-
   publish-github-release:
     name: Publish GitHub Release
     needs: [build-windows, build-macos, build-android]
