@@ -10,7 +10,6 @@ use tracing::{error, info, warn};
 use webrtc::media::Sample;
 use webrtc::track::track_local::track_local_static_sample::TrackLocalStaticSample;
 use windows::core::Interface;
-use windows::Win32::Foundation::{DXGI_ERROR_ACCESS_LOST, DXGI_ERROR_WAIT_TIMEOUT};
 use windows::Win32::Graphics::Direct3D::D3D_DRIVER_TYPE_HARDWARE;
 use windows::Win32::Graphics::Direct3D11::{
     D3D11CreateDevice, ID3D11Device, ID3D11DeviceContext, ID3D11Texture2D,
@@ -21,7 +20,8 @@ use windows::Win32::Graphics::Direct3D11::{
 use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_SAMPLE_DESC};
 use windows::Win32::Graphics::Dxgi::{
     CreateDXGIFactory1, IDXGIAdapter1, IDXGIDevice, IDXGIFactory1, IDXGIOutput, IDXGIOutput1,
-    IDXGIOutputDuplication, IDXGIResource, DXGI_OUTDUPL_FRAME_INFO,
+    IDXGIOutputDuplication, IDXGIResource, DXGI_ERROR_ACCESS_LOST, DXGI_ERROR_WAIT_TIMEOUT,
+    DXGI_OUTDUPL_FRAME_INFO, DXGI_OUTPUT_DESC,
 };
 
 pub struct DxgiScreenStreamer {
@@ -96,7 +96,8 @@ fn create_duplication_context() -> Result<DuplicationContext> {
             .context("Không tìm thấy màn hình đầu ra DXGI index 0")?;
         let output1: IDXGIOutput1 = output.cast()?;
 
-        let desc = output.GetDesc()?;
+        let mut desc: DXGI_OUTPUT_DESC = std::mem::zeroed();
+        output.GetDesc(&mut desc)?;
         let width = ((desc.DesktopCoordinates.right - desc.DesktopCoordinates.left).max(2) as u32) & !1;
         let height = ((desc.DesktopCoordinates.bottom - desc.DesktopCoordinates.top).max(2) as u32) & !1;
 

@@ -4,20 +4,19 @@ use anyhow::{Context, Result};
 use std::ffi::OsString;
 use windows::core::PCWSTR;
 use windows::Win32::System::StationsAndDesktops::{
-    GetThreadDesktop, OpenDesktopW, OpenInputDesktop, SetThreadDesktop, DESKTOP_CONTROL_HANGUL,
-    DESKTOP_CREATEWINDOW, DESKTOP_HOOKCONTROL, DESKTOP_READOBJECTS, DESKTOP_SWITCHDESKTOP,
-    DESKTOP_WRITEOBJECTS, DF_ALLOWOTHERACCOUNTHOOK,
+    GetThreadDesktop, OpenDesktopW, OpenInputDesktop, SetThreadDesktop, DESKTOP_CREATEWINDOW,
+    DESKTOP_HOOKCONTROL, DESKTOP_READOBJECTS, DESKTOP_SWITCHDESKTOP, DESKTOP_WRITEOBJECTS,
+    DF_ALLOWOTHERACCOUNTHOOK,
 };
 use windows::Win32::System::Threading::GetCurrentThreadId;
 
 pub fn attach_current_thread_to_input_desktop() -> Result<()> {
     unsafe {
-        let access = DESKTOP_READOBJECTS
-            | DESKTOP_WRITEOBJECTS
-            | DESKTOP_CREATEWINDOW
-            | DESKTOP_HOOKCONTROL
-            | DESKTOP_CONTROL_HANGUL
-            | DESKTOP_SWITCHDESKTOP;
+        let access: u32 = DESKTOP_READOBJECTS.0
+            | DESKTOP_WRITEOBJECTS.0
+            | DESKTOP_CREATEWINDOW.0
+            | DESKTOP_HOOKCONTROL.0
+            | DESKTOP_SWITCHDESKTOP.0;
 
         let input_desk = OpenInputDesktop(DF_ALLOWOTHERACCOUNTHOOK, false, access)
             .context("Không thể mở Input Desktop hiện tại")?;
@@ -37,7 +36,7 @@ pub fn current_thread_desktop_name() -> String {
             PCWSTR::null(),
             DF_ALLOWOTHERACCOUNTHOOK,
             false,
-            DESKTOP_READOBJECTS,
+            DESKTOP_READOBJECTS.0,
         );
         OsString::from("WinSta0\\Default").to_string_lossy().into_owned()
     }
