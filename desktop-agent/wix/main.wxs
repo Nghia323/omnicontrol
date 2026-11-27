@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+  <Product
+    Id='*'
+    Name='OmniControl Remote Agent'
+    UpgradeCode='7A4B9C12-3E8F-4D2A-9B10-5F6E8D1C2A3B'
+    Manufacturer='OmniControl'
+    Language='1033'
+    Codepage='1252'
+    Version='$(var.Version)'>
+
+    <Package
+      Id='*'
+      Keywords='Installer'
+      Description='OmniControl Desktop Remote Agent'
+      Manufacturer='OmniControl'
+      InstallerVersion='450'
+      Languages='1033'
+      Compressed='yes'
+      InstallScope='perMachine'
+      Platform='x64' />
+
+    <MajorUpgrade
+      Schedule='afterInstallInitialize'
+      DowngradeErrorMessage='Phiên bản mới hơn của [ProductName] đã được cài đặt trên máy tính này.' />
+
+    <Media Id='1' Cabinet='media1.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1' />
+    <Property Id='DiskPrompt' Value='OmniControl Installation [1]' />
+
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='ProgramFiles64Folder'>
+        <Directory Id='APPLICATIONFOLDER' Name='OmniControl'>
+          <Component Id='MainExecutable' Guid='9C6D1E34-5A0B-6F4C-1D32-7B8A0F3E4C5D' Win64='yes'>
+            <File
+              Id='AgentExe'
+              Name='omnicontrol-desktop-agent.exe'
+              DiskId='1'
+              Source='$(var.CargoTargetBinDir)\omnicontrol-desktop-agent.exe'
+              KeyPath='yes' />
+
+            <ServiceInstall
+              Id='OmniControlServiceInstaller'
+              Type='ownProcess'
+              Vital='yes'
+              Name='OmniControlAgentSvc'
+              DisplayName='OmniControl Remote Agent'
+              Description='Dịch vụ truyền màn hình phần cứng và nhận điều khiển đầu cuối E2EE.'
+              Start='auto'
+              Account='LocalSystem'
+              ErrorControl='normal' />
+
+            <ServiceControl
+              Id='StartOmniControlService'
+              Start='install'
+              Stop='both'
+              Remove='uninstall'
+              Name='OmniControlAgentSvc'
+              Wait='yes' />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <Feature Id='Binaries' Title='Application' Level='1'>
+      <ComponentRef Id='MainExecutable' />
+    </Feature>
+  </Product>
+</Wix>

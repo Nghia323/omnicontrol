@@ -1,0 +1,34 @@
+[package]
+name = "omnicontrol-desktop-agent"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+tokio = { version = "1.40", features = ["full"] }
+tracing = "0.1"
+webrtc = "0.11"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Direct3D",
+    "Win32_Graphics_Direct3D11",
+    "Win32_Graphics_Dxgi",
+    "Win32_Graphics_Dxgi_Common",
+    "Win32_System_StationsAndDesktops",
+    "Win32_System_Threading",
+] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+panic = "abort"
+
+[package.metadata.wix]
+upgrade-guid = "7A4B9C12-3E8F-4D2A-9B10-5F6E8D1C2A3B"
+path-guid = "8B5C0D23-4F9A-5E3B-0C21-6A7F9E2D3B4C"
+license = false
+eula = false
