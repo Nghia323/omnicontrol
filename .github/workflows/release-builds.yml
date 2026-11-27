@@ -1,4 +1,4 @@
-name: Build & Publish OmniControl Releases
+﻿name: Build & Publish OmniControl Releases
 
 on:
   push:
@@ -27,8 +27,7 @@ jobs:
         run: |
           cargo build --release --target x86_64-pc-windows-msvc
           cargo wix --nocapture -o OmniControlAgent-windows-x64.msi
-      - name: Upload Windows Artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: windows-msi
           path: desktop-agent/OmniControlAgent-windows-x64.msi
@@ -45,8 +44,7 @@ jobs:
       - name: Build & Package macOS DMG
         working-directory: desktop-agent
         run: bash ../scripts/package-macos.sh
-      - name: Upload macOS Artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: macos-dmg
           path: desktop-agent/dist/OmniControlAgent-macos-universal.dmg
@@ -61,7 +59,10 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
       - name: Decode Signing Keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.OMNI_KEYSTORE_BASE64 }}
@@ -74,28 +75,15 @@ jobs:
           OMNI_KEYSTORE_PASS: ${{ secrets.OMNI_KEYSTORE_PASS }}
           OMNI_KEY_ALIAS: ${{ secrets.OMNI_KEY_ALIAS }}
           OMNI_KEY_PASS: ${{ secrets.OMNI_KEY_PASS }}
-        run: |
-          - name: Setup Gradle
-    uses: gradle/actions/setup-gradle@v4
-    with:
-      gradle-version: '8.9'
-
-  - name: Build Signed APK & AAB
-    working-directory: android-client
-    env:
-      OMNI_KEYSTORE_PATH: release-keystore.jks
-      OMNI_KEYSTORE_PASS: ${{ secrets.OMNI_KEYSTORE_PASS }}
-      OMNI_KEY_ALIAS: ${{ secrets.OMNI_KEY_ALIAS }}
-      OMNI_KEY_PASS: ${{ secrets.OMNI_KEY_PASS }}
-    run: gradle assembleRelease bundleRelease
-      - name: Upload Android Artifacts
-        uses: actions/upload-artifact@v4
+        run: gradle assembleRelease bundleRelease
+      - uses: actions/upload-artifact@v4
         with:
           name: android-packages
           path: |
             android-client/app/build/outputs/apk/release/app-arm64-v8a-release.apk
             android-client/app/build/outputs/apk/release/app-universal-release.apk
             android-client/app/build/outputs/bundle/release/app-release.aab
+
   publish-github-release:
     name: Publish GitHub Release
     needs: [build-windows, build-macos, build-android]
